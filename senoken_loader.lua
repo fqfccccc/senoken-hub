@@ -89,11 +89,17 @@ local function tryKey()
 			end
 		end)
 		local ok, err = pcall(function()
-			loadstring(game:HttpGet(BANANA_HUB_URL))()
-		end)
-		if not ok then
-			warn("[SENOKEN HUB] Load failed: "..tostring(err))
-		end
+    local src = game:HttpGet(BANANA_HUB_URL)
+    local fn = loadstring(src)
+    if not fn then error("loadstring returned nil — syntax error in BananaHub file") end
+    fn()
+end)
+if not ok then
+    -- loud, impossible-to-miss error
+    Msg.TextColor3 = C.bad
+    Msg.Text = "Load failed: "..tostring(err):sub(1,80)
+    error("[SENOKEN HUB] Load failed: "..tostring(err))
+end
 	else
 		Msg.TextColor3=C.bad; Msg.Text="Invalid key"
 	end
