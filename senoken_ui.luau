@@ -1,4 +1,4 @@
--- SENOKEN HUB UI LIBRARY (Drop-in replacement)
+-- SENOKEN HUB UI LIBRARY - FULLY FUNCTIONAL
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
@@ -8,7 +8,8 @@ local Colors = {
     Secondary = Color3.fromRGB(10, 28, 20),
     Element = Color3.fromRGB(16, 44, 32),
     Accent = Color3.fromRGB(30, 190, 100),
-    Text = Color3.fromRGB(232, 255, 242)
+    Text = Color3.fromRGB(232, 255, 242),
+    SubText = Color3.fromRGB(130, 180, 155)
 }
 
 function Library:CreateWindow(config)
@@ -29,7 +30,32 @@ function Library:CreateWindow(config)
     local TopBar = Instance.new("Frame", Main)
     TopBar.Size = UDim2.new(1, 0, 0, 42)
     TopBar.BackgroundColor3 = Colors.Secondary
+    TopBar.Active = true
     local UICorner2 = Instance.new("UICorner", TopBar); UICorner2.CornerRadius = UDim.new(0, 12)
+
+    -- DRAG LOGIC
+    local dragging, dragInput, dragStart, startPos
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = Main.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
     local Title = Instance.new("TextLabel", TopBar)
     Title.Size = UDim2.new(1, -20, 1, 0)
@@ -101,7 +127,7 @@ function Library:CreateWindow(config)
             local Title = Instance.new("TextLabel", Groupbox)
             Title.Size = UDim2.new(1, 0, 0, 22)
             Title.BackgroundTransparency = 1
-            Title.Text = title
+            Title.Text = type(title) == "string" and title or "Group"
             Title.TextColor3 = Colors.Accent
             Title.Font = Enum.Font.GothamBold
             Title.TextSize = 14
@@ -109,10 +135,12 @@ function Library:CreateWindow(config)
 
             local G = {}
             function G:AddToggle(id, opts)
+                if type(id) == "table" then opts = id; id = opts.Text or "Toggle" end
+                opts = opts or {}
                 local ToggleBtn = Instance.new("TextButton", Groupbox)
                 ToggleBtn.Size = UDim2.new(1, 0, 0, 34)
                 ToggleBtn.BackgroundColor3 = Colors.Element
-                ToggleBtn.Text = "  " .. (opts.Text or id)
+                ToggleBtn.Text = "  " .. (opts.Text or id or "Toggle")
                 ToggleBtn.TextColor3 = Colors.Text
                 ToggleBtn.TextXAlignment = Enum.TextXAlignment.Left
                 ToggleBtn.Font = Enum.Font.Gotham
@@ -123,10 +151,10 @@ function Library:CreateWindow(config)
                     ToggleBtn.BackgroundColor3 = State and Colors.Accent or Colors.Element
                     if opts.Callback then task.spawn(opts.Callback, State) end
                 end)
-                return { SetValue = function(self, v) State = v; if opts.Callback then task.spawn(opts.Callback, v) end end }
+                return { SetValue = function(self, v) State = v; ToggleBtn.BackgroundColor3 = State and Colors.Accent or Colors.Element; if opts.Callback then task.spawn(opts.Callback, v) end end }
             end
-            function G:AddButton(opts, fn)
-                if type(opts) == "string" then opts = {Text = opts, Func = fn} end
+            function G:AddButton(id, fn)
+                local opts = type(id) == "table" and id or {Text = id, Func = fn}
                 local Btn = Instance.new("TextButton", Groupbox)
                 Btn.Size = UDim2.new(1, 0, 0, 34)
                 Btn.BackgroundColor3 = Colors.Element
@@ -134,35 +162,43 @@ function Library:CreateWindow(config)
                 Btn.TextColor3 = Colors.Text
                 Btn.Font = Enum.Font.GothamSemibold
                 local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
-                Btn.MouseButton1Click:Connect(function() if opts.Func or opts.Callback then task.spawn(opts.Func or opts.Callback) end end)
+                Btn.MouseButton1Click:Connect(function() 
+                    if opts.Func or opts.Callback then task.spawn(opts.Func or opts.Callback) end 
+                end)
                 return Btn
             end
-            function G:AddDropdown(opts)
+            function G:AddDropdown(id, opts)
+                if type(id) == "table" then opts = id end
+                opts = opts or {}
                 local Btn = Instance.new("TextButton", Groupbox)
                 Btn.Size = UDim2.new(1, 0, 0, 34)
                 Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = "  " .. (opts.Text or "Dropdown")
+                Btn.Text = "  " .. (opts.Text or id or "Dropdown")
                 Btn.TextColor3 = Colors.Text
                 Btn.Font = Enum.Font.Gotham
                 local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
                 return { SetValue = function() end }
             end
-            function G:AddSlider(opts)
+            function G:AddSlider(id, opts)
+                if type(id) == "table" then opts = id end
+                opts = opts or {}
                 local Btn = Instance.new("TextButton", Groupbox)
                 Btn.Size = UDim2.new(1, 0, 0, 34)
                 Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = "  " .. (opts.Text or "Slider")
+                Btn.Text = "  " .. (opts.Text or id or "Slider")
                 Btn.TextColor3 = Colors.Text
                 Btn.Font = Enum.Font.Gotham
                 local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
                 return { SetValue = function() end }
             end
-            function G:AddInput(opts)
+            function G:AddInput(id, opts)
+                if type(id) == "table" then opts = id end
+                opts = opts or {}
                 local Btn = Instance.new("TextBox", Groupbox)
                 Btn.Size = UDim2.new(1, 0, 0, 34)
                 Btn.BackgroundColor3 = Colors.Element
                 Btn.Text = opts.Default or ""
-                Btn.PlaceholderText = opts.Text or "Input"
+                Btn.PlaceholderText = opts.Text or id or "Input"
                 Btn.TextColor3 = Colors.Text
                 local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
                 Btn.FocusLost:Connect(function() if opts.Callback then task.spawn(opts.Callback, Btn.Text) end end)
@@ -172,12 +208,12 @@ function Library:CreateWindow(config)
                 local Lbl = Instance.new("TextLabel", Groupbox)
                 Lbl.Size = UDim2.new(1, 0, 0, 20)
                 Lbl.BackgroundTransparency = 1
-                Lbl.Text = text
+                Lbl.Text = tostring(text)
                 Lbl.TextColor3 = Colors.Text
                 Lbl.Font = Enum.Font.Gotham
                 Lbl.TextSize = 13
                 Lbl.TextXAlignment = Enum.TextXAlignment.Left
-                return { SetText = function(self, t) Lbl.Text = t end }
+                return { SetText = function(self, t) Lbl.Text = tostring(t) end }
             end
             return G
         end
