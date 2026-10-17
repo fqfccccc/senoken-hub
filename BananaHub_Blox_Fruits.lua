@@ -2276,7 +2276,18 @@ do
 	end
 end
 
-local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/senoken_ui.luau"))
+-- SENOKEN HUB UI INJECTION
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
+task.wait(0.1)
+if type(Lib) == "table" then
+    local oldCreateWindow = Lib.CreateWindow
+    Lib.CreateWindow = function(self, config)
+        if config then config.Title = "SENOKEN HUB"; config.Subtitle = "Blox Fruits" end
+        return oldCreateWindow(self, config)
+    end
+else
+    error("Failed to load Banana Hub UI Library. Check the URL.")
+end
 local v237 = lib:CreateWindow({
 	Title = "Banana Hub",
 	Subtitle = "Blox Fruit Script",
