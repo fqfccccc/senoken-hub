@@ -5,7 +5,7 @@
 local KEY_URL = "https://link-target.net/962265/cpZeUpgKCxnk"
 local VALID_KEY = "SENOKEN-872529"
 -- URL of the patched Banana Hub file (green UI version) — fill after upload:
-local BANANA_HUB_URL = "https://raw.githubusercontent.com/YOUR_USER/YOUR_REPO/main/BananaHub_Blox_Fruits.lua"
+local BANANA_HUB_URL = "https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/BananaHub_Blox_Fruits.lua"
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
