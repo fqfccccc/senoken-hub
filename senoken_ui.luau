@@ -11,7 +11,77 @@ local C = {
 	sub = Color3.fromRGB(130,180,155), bad = Color3.fromRGB(255,90,100),
 	good = Color3.fromRGB(110,255,160),
 }
-local function new(cls,p,par) local o=Instance.new(cls); for k,v in pairs(p or {}) do o[k]=v end; if par then o.Parent=par end; return o end
+local function new(cls,p,par) local o=Instance.new(cls);local o=Instance.new(cls); for k,v in pairs(p or {}) do o[k]=v end; if par then o.Parent=par end; return o end
+local function corner(o,r) return new("UICorner",{CornerRadius=UDim.new(0,r or 8)},o) end
+local function stroke(o,c,t) return new("UIStroke",{Color=c or C.accent,Thickness=t or 1.5,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},o) end
+local function guiParent()
+	local ok,h = pcall(function() return gethui and gethui() end); if ok and h then return h end
+	local ok2 = pcall(function() return game:GetService("CoreGui").Name end)
+	if ok2 then return game:GetService("CoreGui") end
+	return LP:WaitForChild("PlayerGui")
+end
+local function makeDraggable(handle,target)
+	local dragging,dragStart,startPos
+	handle.InputBegan:Connect(function(i)
+		if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then
+			dragging=true; dragStart=i.Position; startPos=target.Position
+			i.Changed:Connect(function() if i.UserInputState==Enum.UserInputState.End then dragging=false end end)
+		end
+	end)
+	UIS.InputChanged:Connect(function(i)
+		if dragging and (i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch) then
+			local d=i.Position-dragStart
+			target.Position=UDim2.new(startPos.X.Scale,startPos.X.Offset+d.X,startPos.Y.Scale,startPos.Y.Offset+d.Y)
+		end
+	end)
+end
+local ROOT = new("ScreenGui",{Name="SenokenHub",ResetOnSpawn=false,IgnoreGuiInset=true,ZIndexBehavior=Enum.ZIndexBehavior.Sibling},guiParent())
+local Lib={}
+function Lib.ToggleUI() end
+function Lib:Notify(cfg) pcall(function() game:GetService("StarterGui"):SetCore("SendNotification",{Title=cfg.Title or "SENOKEN HUB",Text=cfg.Description or cfg.Text or "",Duration=cfg.Duration or 4}) end) end
+local function noop() end
+
+local function makeGroupbox(page,title,order)
+	local box=new("Frame",{Size=UDim2.new(1,0,0,0),AutomaticSize=Enum.AutomaticSize.Y,BackgroundColor3=C.bg,BackgroundTransparency=0.2,BorderSizePixel=0,LayoutOrder=order},page)
+	corner(box,8); stroke(box,C.item,1)
+	new("UIListLayout",{Padding=UDim.new(0,6),SortOrder=Enum.SortOrder.LayoutOrder},box)
+	new("UIPadding",{PaddingTop=UDim.new(0,6),PaddingBottom=UDim.new(0,8),PaddingLeft=UDim.new(0,8),PaddingRight=UDim.new(0,8)},box)
+	new("TextLabel",{Size=UDim2.new(1,0,0,22),BackgroundTransparency=1,Text=title,Font=Enum.Font.GothamBold,TextSize=14,TextColor3=C.accent2,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=0},box)
+	local n=0; local function nextOrder() n=n+1 return n end
+	local G={}
+
+	function G:AddLabel(text)
+		local l=new("TextLabel",{Size=UDim2.new(1,0,0,20),AutomaticSize=Enum.AutomaticSize.Y,BackgroundTransparency=1,Text=tostring(text or ""),Font=Enum.Font.Gotham,TextSize=13,TextColor3=C.text,TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,LayoutOrder=nextOrder()},box)
+		local o={}; function o:SetText(t) l.Text=tostring(t) end; return o
+	end
+
+	function G:AddToggle(id,opts)
+		if type(id)=="table" then opts=id end; opts=opts or {}
+		local cb=opts.Callback or noop; local state=opts.Default and true or false
+		local row=new("TextButton",{Size=UDim2.new(1,0,0,38),BackgroundColor3=C.item,Text="",AutoButtonColor=false,LayoutOrder=nextOrder()},box)
+		corner(row,8)
+		new("TextLabel",{Size=UDim2.new(1,-64,1,0),Position=UDim2.new(0,12,0,0),BackgroundTransparency=1,Text=tostring(opts.Text or id),Font=Enum.Font.Gotham,TextSize=13,TextColor3=C.text,TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left},row)
+		local pill=new("Frame",{Size=UDim2.new(0,40,0,20),Position=UDim2.new(1,-52,0.5,-10),BackgroundColor3=C.bg},row); corner(pill,10)
+		local dot=new("Frame",{Size=UDim2.new(0,16,0,16),Position=UDim2.new(0,2,0.5,-8),BackgroundColor3=C.sub},pill); corner(dot,8)
+		local o={Value=state}
+		local function render()
+			TweenSvc:Create(dot,TweenInfo.new(0.12),{Position=state and UDim2.new(1,-18,0.5,-8) or UDim2.new(0,2,0.5,-8),BackgroundColor3=state and C.accent2 or C.sub}):Play()
+			pill.BackgroundColor3=state and C.accent or C.bg
+		end
+		function o:SetValue(v) state=v and true or false; o.Value=state; render(); task.spawn(cb,state) end
+		render()
+		row.MouseButton1Click:Connect(function() o:SetValue(not state) end)
+		if state then task.spawn(cb,state) end
+		return o
+	end
+
+	function G:AddButton(opts,fn)
+		if type(opts)=="string" then opts={Text=opts,Func=fn} end; opts=opts or {}
+		local cb=opts.Func or opts.Callback or noop
+		local b=new("TextButton",{Size=UDim2.new(1,0,0,34),BackgroundColor3=C.accent,Text=tostring(opts.Text or "Button"),Font=Enum.Font.GothamSemibold,TextSize=13,TextColor3=C.text,TextWrapped=true,LayoutOrder=nextOrder()},box)
+		corner(b,8); b.MouseButton1Click:Connect(function() task.spawn(cb) end); return b
+	end
+for k,v in pairs(p or {}) do o[k]=v end; if par then o.Parent=par end; return o end
 local function corner(o,r) return new("UICorner",{CornerRadius=UDim.new(0,r or 8)},o) end
 local function stroke(o,c,t) return new("UIStroke",{Color=c or C.accent,Thickness=t or 1.5,ApplyStrokeMode=Enum.ApplyStrokeMode.Border},o) end
 local function guiParent()
