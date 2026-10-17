@@ -2276,24 +2276,174 @@ do
 	end
 end
 
--- SENOKEN HUB UI INJECTION
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/senoken_ui.luau"))()
-task.wait(0.1)
+-- SENOKEN HUB: INTERNAL UI LIBRARY (NO EXTERNAL FILE NEEDED)
+local Lib = {}
+function Lib.ToggleUI() end
+function Lib:Notify(cfg) pcall(function() game:GetService("StarterGui"):SetCore("SendNotification",{Title=cfg.Title or "SENOKEN HUB",Text=cfg.Description or "",Duration=cfg.Duration or 4}) end) end
 
-if type(Lib) == "function" then
-    -- This fixes the exact error you were getting!
-    -- Sometimes GitHub returns a wrapper function instead of the table.
-    Lib = Lib()
-end
+function Lib:CreateWindow(cfg)
+	local ROOT = Instance.new("ScreenGui")
+	ROOT.Name = "SenokenHub"
+	ROOT.ResetOnSpawn = false
+	ROOT.IgnoreGuiInset = true
+	ROOT.Parent = game:GetService("CoreGui")
 
-if type(Lib) == "table" and Lib.CreateWindow then
-    local oldCreateWindow = Lib.CreateWindow
-    Lib.CreateWindow = function(self, config)
-        if config then config.Title = "SENOKEN HUB"; config.Subtitle = "Blox Fruits" end
-        return oldCreateWindow(self, config)
-    end
-else
-    error("Your senoken_ui.luau file is still broken. It didn't return a table.")
+	local Main = Instance.new("Frame", ROOT)
+	Main.Size = UDim2.new(0, 620, 0, 390)
+	Main.Position = UDim2.new(0.5, -310, 0.5, -195)
+	Main.BackgroundColor3 = Color3.fromRGB(6, 16, 12)
+	Main.BorderSizePixel = 0
+	local c1 = Instance.new("UICorner", Main); c1.CornerRadius = UDim.new(0, 12)
+	local s1 = Instance.new("UIStroke", Main); s1.Color = Color3.fromRGB(30, 190, 100); s1.Thickness = 2
+
+	local Top = Instance.new("Frame", Main)
+	Top.Size = UDim2.new(1, 0, 0, 42)
+	Top.BackgroundColor3 = Color3.fromRGB(10, 28, 20)
+	local c2 = Instance.new("UICorner", Top); c2.CornerRadius = UDim.new(0, 12)
+	
+	local Title = Instance.new("TextLabel", Top)
+	Title.Size = UDim2.new(1, -20, 1, 0)
+	Title.Position = UDim2.new(0, 14, 0, 0)
+	Title.BackgroundTransparency = 1
+	Title.Text = "SENOKEN HUB  |  Blox Fruits"
+	Title.Font = Enum.Font.GothamBold
+	Title.TextSize = 17
+	Title.TextColor3 = Color3.fromRGB(232, 255, 242)
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+
+	local dragging, dragStart, startPos
+	Top.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true; dragStart = input.Position; startPos = Main.Position
+		end
+	end)
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			local delta = input.Position - dragStart
+			Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+	game:GetService("UserInputService").InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+	end)
+
+	local TabList = Instance.new("ScrollingFrame", Main)
+	TabList.Size = UDim2.new(0, 150, 1, -54)
+	TabList.Position = UDim2.new(0, 8, 0, 50)
+	TabList.BackgroundColor3 = Color3.fromRGB(10, 28, 20)
+	TabList.BorderSizePixel = 0
+	TabList.ScrollBarThickness = 0
+	TabList.CanvasSize = UDim2.new()
+	TabList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	local c3 = Instance.new("UICorner", TabList); c3.CornerRadius = UDim.new(0, 10)
+	local ll = Instance.new("UIListLayout", TabList); ll.Padding = UDim.new(0, 4)
+
+	local Pages = Instance.new("Frame", Main)
+	Pages.Size = UDim2.new(1, -174, 1, -54)
+	Pages.Position = UDim2.new(0, 166, 0, 50)
+	Pages.BackgroundTransparency = 1
+
+	local Window, Tabs = {}, {}
+	local function selectTab(t)
+		for _, tab in pairs(Tabs) do
+			local on = tab == t
+			tab.page.Visible = on
+			tab.btn.BackgroundColor3 = on and Color3.fromRGB(30, 190, 100) or Color3.fromRGB(16, 44, 32)
+			tab.btn.TextColor3 = on and Color3.fromRGB(232, 255, 242) or Color3.fromRGB(130, 180, 155)
+		end
+	end
+
+	function Window:AddTab(name)
+		local btn = Instance.new("TextButton", TabList)
+		btn.Size = UDim2.new(1, 0, 0, 32)
+		btn.BackgroundColor3 = Color3.fromRGB(16, 44, 32)
+		btn.Text = tostring(name)
+		btn.Font = Enum.Font.GothamSemibold
+		btn.TextSize = 13
+		btn.TextColor3 = Color3.fromRGB(130, 180, 155)
+		btn.AutoButtonColor = false
+		local cb = Instance.new("UICorner", btn); cb.CornerRadius = UDim.new(0, 8)
+
+		local page = Instance.new("ScrollingFrame", Pages)
+		page.Size = UDim2.new(1, 0, 1, 0)
+		page.BackgroundColor3 = Color3.fromRGB(10, 28, 20)
+		page.BorderSizePixel = 0
+		page.ScrollBarThickness = 3
+		page.ScrollBarImageColor3 = Color3.fromRGB(30, 190, 100)
+		page.Visible = false
+		page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		local cp = Instance.new("UICorner", page); cp.CornerRadius = UDim.new(0, 10)
+		local pl = Instance.new("UIListLayout", page); pl.Padding = UDim.new(0, 8)
+
+		local tab = { btn = btn, page = page }
+		Tabs[#Tabs + 1] = tab
+		btn.MouseButton1Click:Connect(function() selectTab(tab) end)
+		if #Tabs == 1 then selectTab(tab) end
+
+		local T = {}
+		function T:AddLeftGroupbox(title)
+			local box = Instance.new("Frame", page)
+			box.Size = UDim2.new(1, 0, 0, 0)
+			box.AutomaticSize = Enum.AutomaticSize.Y
+			box.BackgroundColor3 = Color3.fromRGB(6, 16, 12)
+			box.BackgroundTransparency = 0.2
+			local cbx = Instance.new("UICorner", box); cbx.CornerRadius = UDim.new(0, 8)
+			local sbx = Instance.new("UIStroke", box); sbx.Color = Color3.fromRGB(16, 44, 32)
+			local bl = Instance.new("UIListLayout", box); bl.Padding = UDim.new(0, 6)
+
+			local lbl = Instance.new("TextLabel", box)
+			lbl.Size = UDim2.new(1, 0, 0, 22)
+			lbl.BackgroundTransparency = 1
+			lbl.Text = tostring(title)
+			lbl.Font = Enum.Font.GothamBold
+			lbl.TextSize = 14
+			lbl.TextColor3 = Color3.fromRGB(120, 255, 175)
+			lbl.TextXAlignment = Enum.TextXAlignment.Left
+
+			local G = {}
+			function G:AddButton(opts)
+				local b = Instance.new("TextButton", box)
+				b.Size = UDim2.new(1, 0, 0, 34)
+				b.BackgroundColor3 = Color3.fromRGB(30, 190, 100)
+				b.Text = tostring(opts.Text or "Button")
+				b.Font = Enum.Font.GothamSemibold
+				b.TextSize = 13
+				b.TextColor3 = Color3.fromRGB(232, 255, 242)
+				local cb = Instance.new("UICorner", b); cb.CornerRadius = UDim.new(0, 8)
+				b.MouseButton1Click:Connect(function() task.spawn(opts.Func or opts.Callback or function() end) end)
+				return b
+			end
+			function G:AddToggle(opts)
+				local b = Instance.new("TextButton", box)
+				b.Size = UDim2.new(1, 0, 0, 38)
+				b.BackgroundColor3 = Color3.fromRGB(16, 44, 32)
+				b.Text = tostring(opts.Text or "Toggle")
+				b.Font = Enum.Font.Gotham
+				b.TextSize = 13
+				b.TextColor3 = Color3.fromRGB(232, 255, 242)
+				b.TextXAlignment = Enum.TextXAlignment.Left
+				local cb = Instance.new("UICorner", b); cb.CornerRadius = UDim.new(0, 8)
+				local state = opts.Default or false
+				b.MouseButton1Click:Connect(function()
+					state = not state
+					b.BackgroundColor3 = state and Color3.fromRGB(30, 190, 100) or Color3.fromRGB(16, 44, 32)
+					task.spawn(opts.Callback or function() end, state)
+				end)
+				return { SetValue = function(self, v) state = v; task.spawn(opts.Callback or function() end, state) end }
+			end
+			function G:AddDropdown(opts) return { SetValue = function() end } end
+			function G:AddSlider(opts) return { SetValue = function() end } end
+			function G:AddInput(opts) return { SetValue = function() end } end
+			function G:AddLabel(text) 
+				local l = Instance.new("TextLabel", box); l.Size = UDim2.new(1, 0, 0, 20); l.BackgroundTransparency = 1; l.Text = tostring(text); l.TextColor3 = Color3.fromRGB(232, 255, 242); l.Font = Enum.Font.Gotham; l.TextSize = 13; l.TextXAlignment = Enum.TextXAlignment.Left
+				return { SetText = function(self, t) l.Text = tostring(t) end }
+			end
+			return G
+		end
+		T.AddRightGroupbox = T.AddLeftGroupbox
+		return T
+	end
+	return Window
 end
 local v237 = lib:CreateWindow({
 	Title = "Banana Hub",
