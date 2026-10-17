@@ -2277,7 +2277,8 @@ do
 end
 
 -- SENOKEN HUB UI INJECTION
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
+-- Load original working UI
+local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
 task.wait(0.1)
 if type(Lib) == "table" then
     local oldCreateWindow = Lib.CreateWindow
