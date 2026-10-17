@@ -2276,7 +2276,7 @@ do
 	end
 end
 
-local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
+local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/senoken_ui.luau"))
 local v237 = lib:CreateWindow({
 	Title = "Banana Hub",
 	Subtitle = "Blox Fruit Script",
