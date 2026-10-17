@@ -2276,47 +2276,42 @@ do
 	end
 end
 
--- SENOKEN HUB: INTERNAL UI LIBRARY (NO EXTERNAL FILE NEEDED)
-local Lib = {}
-function Lib.ToggleUI() end
-function Lib:Notify(cfg) pcall(function() game:GetService("StarterGui"):SetCore("SendNotification",{Title=cfg.Title or "SENOKEN HUB",Text=cfg.Description or "",Duration=cfg.Duration or 4}) end) end
+-- SENOKEN HUB OVERRIDE
+local success, result = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
+end)
 
-function Lib:CreateWindow(cfg)
-	local ROOT = Instance.new("ScreenGui")
-	ROOT.Name = "SenokenHub"
-	ROOT.ResetOnSpawn = false
-	ROOT.IgnoreGuiInset = true
-	ROOT.Parent = game:GetService("CoreGui")
-
-	local Main = Instance.new("Frame", ROOT)
-	Main.Size = UDim2.new(0, 620, 0, 390)
-	Main.Position = UDim2.new(0.5, -310, 0.5, -195)
-	Main.BackgroundColor3 = Color3.fromRGB(6, 16, 12)
-	Main.BorderSizePixel = 0
-	local c1 = Instance.new("UICorner", Main); c1.CornerRadius = UDim.new(0, 12)
-	local s1 = Instance.new("UIStroke", Main); s1.Color = Color3.fromRGB(30, 190, 100); s1.Thickness = 2
-
-	local Top = Instance.new("Frame", Main)
-	Top.Size = UDim2.new(1, 0, 0, 42)
-	Top.BackgroundColor3 = Color3.fromRGB(10, 28, 20)
-	local c2 = Instance.new("UICorner", Top); c2.CornerRadius = UDim.new(0, 12)
-	
-	local Title = Instance.new("TextLabel", Top)
-	Title.Size = UDim2.new(1, -20, 1, 0)
-	Title.Position = UDim2.new(0, 14, 0, 0)
-	Title.BackgroundTransparency = 1
-	Title.Text = "SENOKEN HUB  |  Blox Fruits"
-	Title.Font = Enum.Font.GothamBold
-	Title.TextSize = 17
-	Title.TextColor3 = Color3.fromRGB(232, 255, 242)
-	Title.TextXAlignment = Enum.TextXAlignment.Left
-
-	local dragging, dragStart, startPos
-	Top.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true; dragStart = input.Position; startPos = Main.Position
-		end
-	end)
+if success and type(result) == "table" then
+    local Lib = result
+    local oldCreateWindow = Lib.CreateWindow
+    Lib.CreateWindow = function(self, config)
+        if config then
+            config.Title = "SENOKEN HUB"
+            config.Subtitle = "Blox Fruits"
+        end
+        return oldCreateWindow(self, config)
+    end
+    return Lib
+else
+    -- Fallback if original UI is dead
+    return {
+        CreateWindow = function() return {
+            AddTab = function() return {
+                AddLeftGroupbox = function() return {
+                    AddToggle = function() return {SetValue = function() end} end,
+                    AddButton = function() return end,
+                    AddDropdown = function() return {SetValue = function() end} end,
+                    AddSlider = function() return {SetValue = function() end} end,
+                    AddLabel = function() return {SetText = function() end} end,
+                    AddInput = function() return {SetValue = function() end} end,
+                } end,
+                AddRightGroupbox = function() return {AddLabel = function() return {SetText=function() end} end} end
+            } end
+        } end,
+        ToggleUI = function() end,
+        Notify = function() end
+    }
+end
 	game:GetService("UserInputService").InputChanged:Connect(function(input)
 		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
 			local delta = input.Position - dragStart
