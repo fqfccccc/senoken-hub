@@ -2277,17 +2277,23 @@ do
 end
 
 -- SENOKEN HUB UI INJECTION
--- Load original working UI
-local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloxfruitsnokey/Banana/refs/heads/main/Banana/ui.luau"))()
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/senoken_ui.luau"))()
 task.wait(0.1)
-if type(Lib) == "table" then
+
+if type(Lib) == "function" then
+    -- This fixes the exact error you were getting!
+    -- Sometimes GitHub returns a wrapper function instead of the table.
+    Lib = Lib()
+end
+
+if type(Lib) == "table" and Lib.CreateWindow then
     local oldCreateWindow = Lib.CreateWindow
     Lib.CreateWindow = function(self, config)
         if config then config.Title = "SENOKEN HUB"; config.Subtitle = "Blox Fruits" end
         return oldCreateWindow(self, config)
     end
 else
-    error("Failed to load Banana Hub UI Library. Check the URL.")
+    error("Your senoken_ui.luau file is still broken. It didn't return a table.")
 end
 local v237 = lib:CreateWindow({
 	Title = "Banana Hub",
