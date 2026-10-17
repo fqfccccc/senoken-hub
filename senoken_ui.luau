@@ -1,225 +1,101 @@
--- SENOKEN HUB UI LIBRARY - FULLY FUNCTIONAL
-local TweenService = game:GetService("TweenService")
+-- 1. KEY SYSTEM
 local UserInputService = game:GetService("UserInputService")
+local KeyGUI = Instance.new("ScreenGui")
+KeyGUI.Name = "SenokenKey"
+KeyGUI.Parent = game:GetService("CoreGui")
 
-local Library = {}
-local Colors = {
-    Background = Color3.fromRGB(6, 16, 12),
-    Secondary = Color3.fromRGB(10, 28, 20),
-    Element = Color3.fromRGB(16, 44, 32),
-    Accent = Color3.fromRGB(30, 190, 100),
-    Text = Color3.fromRGB(232, 255, 242),
-    SubText = Color3.fromRGB(130, 180, 155)
-}
+local Gate = Instance.new("Frame")
+Gate.Size = UDim2.new(0, 380, 0, 260)
+Gate.Position = UDim2.new(0.5, -190, 0.5, -130)
+Gate.BackgroundColor3 = Color3.fromRGB(6, 16, 12)
+Gate.Parent = KeyGUI
+Instance.new("UICorner", Gate).CornerRadius = UDim.new(0, 14)
+Instance.new("UIStroke", Gate).Color = Color3.fromRGB(30, 190, 100)
 
-function Library:CreateWindow(config)
-    local Window = {}
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "SenokenHub"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.Parent = game:GetService("CoreGui")
+local Top = Instance.new("Frame", Gate)
+Top.Size = UDim2.new(1, 0, 0, 46)
+Top.BackgroundColor3 = Color3.fromRGB(10, 28, 20)
+Instance.new("UICorner", Top).CornerRadius = UDim.new(0, 14)
+local Title = Instance.new("TextLabel", Top)
+Title.Size = UDim2.new(1, -20, 1, 0)
+Title.Position = UDim2.new(0, 16, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "SENOKEN HUB | Key System"
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 18
+Title.TextColor3 = Color3.fromRGB(232, 255, 242)
 
-    local Main = Instance.new("Frame", ScreenGui)
-    Main.Size = UDim2.new(0, 620, 0, 390)
-    Main.Position = UDim2.new(0.5, -310, 0.5, -195)
-    Main.BackgroundColor3 = Colors.Background
-    Main.Active = true
-    Main.BorderSizePixel = 0
-    local UICorner = Instance.new("UICorner", Main); UICorner.CornerRadius = UDim.new(0, 12)
+local Input = Instance.new("TextBox", Gate)
+Input.Size = UDim2.new(1, -40, 0, 38)
+Input.Position = UDim2.new(0, 20, 0, 84)
+Input.BackgroundColor3 = Color3.fromRGB(16, 44, 32)
+Input.PlaceholderText = "Enter key..."
+Input.Text = ""
+Input.Font = Enum.Font.Gotham
+Input.TextSize = 15
+Input.TextColor3 = Color3.fromRGB(232, 255, 242)
+Instance.new("UICorner", Input).CornerRadius = UDim.new(0, 8)
 
-    local TopBar = Instance.new("Frame", Main)
-    TopBar.Size = UDim2.new(1, 0, 0, 42)
-    TopBar.BackgroundColor3 = Colors.Secondary
-    TopBar.Active = true
-    local UICorner2 = Instance.new("UICorner", TopBar); UICorner2.CornerRadius = UDim.new(0, 12)
+local Msg = Instance.new("TextLabel", Gate)
+Msg.Size = UDim2.new(1, -40, 0, 18)
+Msg.Position = UDim2.new(0, 20, 0, 128)
+Msg.BackgroundTransparency = 1
+Msg.Text = ""
+Msg.Font = Enum.Font.Gotham
+Msg.TextSize = 13
+Msg.TextColor3 = Color3.fromRGB(255, 90, 100)
 
-    -- DRAG LOGIC
-    local dragging, dragInput, dragStart, startPos
-    TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            dragStart = input.Position
-            startPos = Main.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
-        end
-    end)
-    TopBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
-
-    local Title = Instance.new("TextLabel", TopBar)
-    Title.Size = UDim2.new(1, -20, 1, 0)
-    Title.Position = UDim2.new(0, 14, 0, 0)
-    Title.BackgroundTransparency = 1
-    Title.Text = config.Title or "SENOKEN HUB"
-    Title.TextColor3 = Colors.Text
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 16
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-
-    local TabContainer = Instance.new("ScrollingFrame", Main)
-    TabContainer.Size = UDim2.new(0, 150, 1, -54)
-    TabContainer.Position = UDim2.new(0, 8, 0, 50)
-    TabContainer.BackgroundColor3 = Colors.Secondary
-    TabContainer.BorderSizePixel = 0
-    TabContainer.ScrollBarThickness = 0
-    TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    local UICorner3 = Instance.new("UICorner", TabContainer); UICorner3.CornerRadius = UDim.new(0, 10)
-    local UIListLayout = Instance.new("UIListLayout", TabContainer); UIListLayout.Padding = UDim.new(0, 4)
-
-    local PageContainer = Instance.new("Frame", Main)
-    PageContainer.Size = UDim2.new(1, -174, 1, -54)
-    PageContainer.Position = UDim2.new(0, 166, 0, 50)
-    PageContainer.BackgroundTransparency = 1
-
-    local Tabs = {}
-    local function SelectTab(tab)
-        for _, t in pairs(Tabs) do
-            t.Page.Visible = (t == tab)
-            t.Button.BackgroundColor3 = (t == tab) and Colors.Accent or Colors.Element
-        end
-    end
-
-    function Window:AddTab(name)
-        local TabButton = Instance.new("TextButton", TabContainer)
-        TabButton.Size = UDim2.new(1, 0, 0, 32)
-        TabButton.BackgroundColor3 = Colors.Element
-        TabButton.Text = name
-        TabButton.TextColor3 = Colors.Text
-        TabButton.Font = Enum.Font.GothamSemibold
-        TabButton.TextSize = 13
-        local UICorner = Instance.new("UICorner", TabButton); UICorner.CornerRadius = UDim.new(0, 8)
-
-        local Page = Instance.new("ScrollingFrame", PageContainer)
-        Page.Size = UDim2.new(1, 0, 1, 0)
-        Page.BackgroundColor3 = Colors.Secondary
-        Page.BorderSizePixel = 0
-        Page.Visible = false
-        Page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-        local UICorner = Instance.new("UICorner", Page); UICorner.CornerRadius = UDim.new(0, 10)
-        local UIListLayout = Instance.new("UIListLayout", Page); UIListLayout.Padding = UDim.new(0, 8)
-
-        local Tab = { Button = TabButton, Page = Page, Name = name }
-        table.insert(Tabs, Tab)
-        TabButton.MouseButton1Click:Connect(function() SelectTab(Tab) end)
-        if #Tabs == 1 then SelectTab(Tab) end
-
-        local TabObj = {}
-        function TabObj:AddLeftGroupbox(title)
-            local Groupbox = Instance.new("Frame", Page)
-            Groupbox.Size = UDim2.new(1, 0, 0, 0)
-            Groupbox.AutomaticSize = Enum.AutomaticSize.Y
-            Groupbox.BackgroundColor3 = Colors.Background
-            Groupbox.BackgroundTransparency = 0.2
-            local UICorner = Instance.new("UICorner", Groupbox); UICorner.CornerRadius = UDim.new(0, 8)
-            local UIListLayout = Instance.new("UIListLayout", Groupbox); UIListLayout.Padding = UDim.new(0, 6)
-            
-            local Title = Instance.new("TextLabel", Groupbox)
-            Title.Size = UDim2.new(1, 0, 0, 22)
-            Title.BackgroundTransparency = 1
-            Title.Text = type(title) == "string" and title or "Group"
-            Title.TextColor3 = Colors.Accent
-            Title.Font = Enum.Font.GothamBold
-            Title.TextSize = 14
-            Title.TextXAlignment = Enum.TextXAlignment.Left
-
-            local G = {}
-            function G:AddToggle(id, opts)
-                if type(id) == "table" then opts = id; id = opts.Text or "Toggle" end
-                opts = opts or {}
-                local ToggleBtn = Instance.new("TextButton", Groupbox)
-                ToggleBtn.Size = UDim2.new(1, 0, 0, 34)
-                ToggleBtn.BackgroundColor3 = Colors.Element
-                ToggleBtn.Text = "  " .. (opts.Text or id or "Toggle")
-                ToggleBtn.TextColor3 = Colors.Text
-                ToggleBtn.TextXAlignment = Enum.TextXAlignment.Left
-                ToggleBtn.Font = Enum.Font.Gotham
-                local UICorner = Instance.new("UICorner", ToggleBtn); UICorner.CornerRadius = UDim.new(0, 6)
-                local State = opts.Default or false
-                ToggleBtn.MouseButton1Click:Connect(function()
-                    State = not State
-                    ToggleBtn.BackgroundColor3 = State and Colors.Accent or Colors.Element
-                    if opts.Callback then task.spawn(opts.Callback, State) end
-                end)
-                return { SetValue = function(self, v) State = v; ToggleBtn.BackgroundColor3 = State and Colors.Accent or Colors.Element; if opts.Callback then task.spawn(opts.Callback, v) end end }
-            end
-            function G:AddButton(id, fn)
-                local opts = type(id) == "table" and id or {Text = id, Func = fn}
-                local Btn = Instance.new("TextButton", Groupbox)
-                Btn.Size = UDim2.new(1, 0, 0, 34)
-                Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = opts.Text or "Button"
-                Btn.TextColor3 = Colors.Text
-                Btn.Font = Enum.Font.GothamSemibold
-                local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
-                Btn.MouseButton1Click:Connect(function() 
-                    if opts.Func or opts.Callback then task.spawn(opts.Func or opts.Callback) end 
-                end)
-                return Btn
-            end
-            function G:AddDropdown(id, opts)
-                if type(id) == "table" then opts = id end
-                opts = opts or {}
-                local Btn = Instance.new("TextButton", Groupbox)
-                Btn.Size = UDim2.new(1, 0, 0, 34)
-                Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = "  " .. (opts.Text or id or "Dropdown")
-                Btn.TextColor3 = Colors.Text
-                Btn.Font = Enum.Font.Gotham
-                local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
-                return { SetValue = function() end }
-            end
-            function G:AddSlider(id, opts)
-                if type(id) == "table" then opts = id end
-                opts = opts or {}
-                local Btn = Instance.new("TextButton", Groupbox)
-                Btn.Size = UDim2.new(1, 0, 0, 34)
-                Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = "  " .. (opts.Text or id or "Slider")
-                Btn.TextColor3 = Colors.Text
-                Btn.Font = Enum.Font.Gotham
-                local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
-                return { SetValue = function() end }
-            end
-            function G:AddInput(id, opts)
-                if type(id) == "table" then opts = id end
-                opts = opts or {}
-                local Btn = Instance.new("TextBox", Groupbox)
-                Btn.Size = UDim2.new(1, 0, 0, 34)
-                Btn.BackgroundColor3 = Colors.Element
-                Btn.Text = opts.Default or ""
-                Btn.PlaceholderText = opts.Text or id or "Input"
-                Btn.TextColor3 = Colors.Text
-                local UICorner = Instance.new("UICorner", Btn); UICorner.CornerRadius = UDim.new(0, 6)
-                Btn.FocusLost:Connect(function() if opts.Callback then task.spawn(opts.Callback, Btn.Text) end end)
-                return { SetValue = function(self, v) Btn.Text = v; if opts.Callback then task.spawn(opts.Callback, v) end end }
-            end
-            function G:AddLabel(text)
-                local Lbl = Instance.new("TextLabel", Groupbox)
-                Lbl.Size = UDim2.new(1, 0, 0, 20)
-                Lbl.BackgroundTransparency = 1
-                Lbl.Text = tostring(text)
-                Lbl.TextColor3 = Colors.Text
-                Lbl.Font = Enum.Font.Gotham
-                Lbl.TextSize = 13
-                Lbl.TextXAlignment = Enum.TextXAlignment.Left
-                return { SetText = function(self, t) Lbl.Text = tostring(t) end }
-            end
-            return G
-        end
-        TabObj.AddRightGroupbox = TabObj.AddLeftGroupbox
-        return TabObj
-    end
-    return Window
+local function btn(text, x, w, color)
+    local b = Instance.new("TextButton", Gate)
+    b.Size = UDim2.new(0, w, 0, 38)
+    b.Position = UDim2.new(0, x, 0, 156)
+    b.BackgroundColor3 = color
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 14
+    b.TextColor3 = Color3.fromRGB(232, 255, 242)
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+    return b
 end
-return Library
+local CheckBtn = btn("Check Key", 20, 168, Color3.fromRGB(30, 190, 100))
+local GetBtn = btn("Get Key", 192, 168, Color3.fromRGB(16, 44, 32))
+
+GetBtn.MouseButton1Click:Connect(function()
+    pcall(setclipboard, "https://link-target.net/962265/cpZeUpgKCxnk")
+    Msg.Text = "Link copied!"
+    Msg.TextColor3 = Color3.fromRGB(110, 255, 160)
+end)
+
+local loaded = false
+local function tryKey()
+    if string.upper((Input.Text:gsub("%s", ""))) == "SENOKEN-872529" then
+        Msg.Text = "Key accepted. Loading..."
+        Msg.TextColor3 = Color3.fromRGB(110, 255, 160)
+        task.wait(0.5)
+        Gate:Destroy()
+        loaded = true
+    else
+        Msg.Text = "Invalid key"
+        Msg.TextColor3 = Color3.fromRGB(255, 90, 100)
+    end
+end
+CheckBtn.MouseButton1Click:Connect(tryKey)
+Input.FocusLost:Connect(function(e) if e then tryKey() end end)
+
+while not loaded do task.wait(1) end
+
+-- 2. LOAD THE UI LIBRARY (Fixed to read text correctly)
+local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/senoken_ui.luau"))()
+
+-- 3. PATCH BANANA HUB TO USE THIS UI
+local HubSource = game:HttpGet("https://raw.githubusercontent.com/fqfccccc/senoken-hub/main/BananaHub_Blox_Fruits.lua")
+-- Replace the old UI loading line with our Lib
+local PatchedSource = HubSource:gsub('local lib = loadstring%(game:HttpGet%(".*"%)%)%(%)', 'local lib = ...')
+
+local Loader = loadstring(PatchedSource)
+if Loader then
+    -- We pass the UI library directly into Banana Hub
+    Loader(Lib)
+else
+    warn("Failed to parse Banana Hub source.")
+end
